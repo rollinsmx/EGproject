@@ -49,7 +49,7 @@ export interface WeightEntry {
   notes: string;
 }
 
-export const getEntries = createServerFn({ method: "GET" }).handler(async () => {
+async function fetchRows(): Promise<string[][]> {
   const res = await fetch(
     `${GATEWAY}/spreadsheets/${SPREADSHEET_ID}/values/${SHEET}!A2:C2000`,
     { headers: gatewayHeaders() },
@@ -59,7 +59,11 @@ export const getEntries = createServerFn({ method: "GET" }).handler(async () => 
     throw new Error(`Sheets fetch failed [${res.status}]: ${body}`);
   }
   const data = (await res.json()) as { values?: string[][] };
-  const rows = data.values ?? [];
+  return data.values ?? [];
+}
+
+export const getEntries = createServerFn({ method: "GET" }).handler(async () => {
+  const rows = await fetchRows();
   const entries: WeightEntry[] = [];
   for (const row of rows) {
     const [dateStr, weightStr, notes] = row;
@@ -73,25 +77,59 @@ export const getEntries = createServerFn({ method: "GET" }).handler(async () => 
   return { entries };
 });
 
-export const addEntry = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      weight: z.number().min(20).max(400),
-      notes: z.string().max(500).optional().default(""),
-    }),
-  )
+const entryInput = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  weight: z.number().min(20).max(400),
+  notes: z.string().max(500).optional().default(""),
+  overwrite: z.boolean().optional().default(false),
+});
+
+export const saveEntry = createServerFn({ method: "POST" })
+  .inputValidator(entryInput)
   .handler(async ({ data }) => {
-    const row = [formatSheetDate(data.date), formatWeight(data.weight), data.notes ?? ""];
+    const rows = await fetchRows();
+    // Find existing row index (1-based, +2 because A2 is row 2)
+    let existingRowNum: number | null = null;
+    for (let i = 0; i < rows.length; i++) {
+      const [dateStr] = rows[i];
+      if (!dateStr) continue;
+      if (parseSheetDate(dateStr) === data.date) {
+        existingRowNum = i + 2;
+        break;
+      }
+    }
+
+    const values = [[formatSheetDate(data.date), formatWeight(data.weight), data.notes ?? ""]];
+
+    if (existingRowNum !== null) {
+      if (!data.overwrite) {
+        return { status: "duplicate" as const, existing: rows[existingRowNum - 2] };
+      }
+      const url = `${GATEWAY}/spreadsheets/${SPREADSHEET_ID}/values/${SHEET}!A${existingRowNum}:C${existingRowNum}?valueInputOption=USER_ENTERED`;
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: gatewayHeaders(),
+        body: JSON.stringify({ values }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Sheets update failed [${res.status}]: ${body}`);
+      }
+      return { status: "updated" as const };
+    }
+
     const url = `${GATEWAY}/spreadsheets/${SPREADSHEET_ID}/values/${SHEET}!A:C:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
     const res = await fetch(url, {
       method: "POST",
       headers: gatewayHeaders(),
-      body: JSON.stringify({ values: [row] }),
+      body: JSON.stringify({ values }),
     });
     if (!res.ok) {
       const body = await res.text();
       throw new Error(`Sheets append failed [${res.status}]: ${body}`);
     }
-    return { success: true };
+    return { status: "created" as const };
   });
+
+// Back-compat alias
+export const addEntry = saveEntry;
