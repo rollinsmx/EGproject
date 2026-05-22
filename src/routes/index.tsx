@@ -55,17 +55,17 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster position="top-center" />
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-14">
         {/* Header */}
-        <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mb-6 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
               Dashboard
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="mt-1.5 text-2xl font-semibold tracking-tight sm:mt-2 sm:text-4xl">
               Weight
             </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
               {all.length > 0
                 ? `${all.length} entries · last logged ${format(parseISO(all[all.length - 1].date), "MMM d, yyyy")}`
                 : "No entries yet"}
