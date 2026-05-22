@@ -16,21 +16,23 @@ const OPTIONS: { key: RangeKey; label: string }[] = [
 
 export function RangeFilter({ value, onChange }: Props) {
   return (
-    <div className="inline-flex rounded-full border bg-card p-1 text-sm">
-      {OPTIONS.map((o) => (
-        <button
-          key={o.key}
-          onClick={() => onChange(o.key)}
-          className={cn(
-            "rounded-full px-4 py-1.5 font-medium transition-all duration-200",
-            value === o.key
-              ? "bg-foreground text-background shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
+    <div className="-mx-1 flex w-full overflow-x-auto sm:w-auto sm:overflow-visible">
+      <div className="mx-1 inline-flex rounded-full border bg-card p-1 text-sm">
+        {OPTIONS.map((o) => (
+          <button
+            key={o.key}
+            onClick={() => onChange(o.key)}
+            className={cn(
+              "whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:text-sm",
+              value === o.key
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

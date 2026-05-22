@@ -19,22 +19,22 @@ export function StatCard({ label, value, unit, delta, hint, emphasize }: StatCar
   return (
     <div
       className={cn(
-        "group rounded-2xl border bg-card p-5 transition-all duration-300 hover:shadow-sm",
+        "group rounded-2xl border bg-card p-4 transition-all duration-300 hover:shadow-sm sm:p-5",
         emphasize && "bg-foreground text-background border-foreground",
       )}
     >
       <p
         className={cn(
-          "text-xs font-medium uppercase tracking-wider",
+          "text-[10px] font-medium uppercase tracking-wider sm:text-xs",
           emphasize ? "text-background/60" : "text-muted-foreground",
         )}
       >
         {label}
       </p>
-      <div className="mt-3 flex items-baseline gap-1.5 num">
-        <span className="text-3xl font-semibold">{value}</span>
+      <div className="mt-2 flex items-baseline gap-1.5 num sm:mt-3">
+        <span className="text-2xl font-semibold sm:text-3xl">{value}</span>
         {unit && (
-          <span className={cn("text-sm font-medium", emphasize ? "text-background/60" : "text-muted-foreground")}>
+          <span className={cn("text-xs font-medium sm:text-sm", emphasize ? "text-background/60" : "text-muted-foreground")}>
             {unit}
           </span>
         )}
