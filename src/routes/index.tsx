@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 const entriesQuery = queryOptions({
   queryKey: ["entries"],
   queryFn: () => getEntries(),
+  refetchInterval: 30_000,
+  refetchOnWindowFocus: true,
 });
 
 export const Route = createFileRoute("/")({
